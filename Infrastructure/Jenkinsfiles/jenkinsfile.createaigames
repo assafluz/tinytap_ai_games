@@ -28,9 +28,7 @@ pipeline {
                     sh "git config --global user.email ${GIT_EMAIL}"
                     sh "git add index.html"
                     sh "git commit -m 'Update index.html from Jenkins'"
-                    withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
-                        sh "git push ${REPO_URL} HEAD:${BRANCH_NAME}"
-                    }
+                    sh "git push --quiet --set-upstream ${REPO_URL} HEAD:${BRANCH_NAME}"
                 }
             }
         }
