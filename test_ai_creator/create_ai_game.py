@@ -14,14 +14,16 @@ class TestCreateAiGame(TestCase):
         self.driver = webdriver.Chrome(executable_path=chrome_driver_path, options=options)
         self.original_url = 'https://staging-static.tinytap.it/media/webplayer/webplayer.html?structureJson=https%3A%2F%2Flangchain.tinytap.it%2F%3Fterm='
 
-        # Construct the path for the index.html file in the parent directory
-        self.results_html_file = os.path.join("..", "index.html")
+        # Construct the path for the index.html file one directory up
+        self.results_html_file = os.path.join(os.path.dirname(__file__), "..", "index.html")
 
         self.used_terms = set()
         self.popular_terms = self.load_popular_terms()
 
     def load_popular_terms(self):
-        with open("popular_terms.txt", "r") as file:
+        # Provide the absolute path to the popular_terms.txt file
+        popular_terms_file = os.path.join(os.path.dirname(__file__), "popular_terms.txt")
+        with open(popular_terms_file, "r") as file:
             terms = [line.strip() for line in file.readlines()]
         return terms
 
@@ -35,18 +37,18 @@ class TestCreateAiGame(TestCase):
         if not available_terms:
             return None
 
-        self.current_term = random.choice(available_terms)  # Store the current term
+        self.current_term = random.choice(available_terms)
         self.used_terms.add(self.current_term)
         new_url = f"{self.original_url}{self.current_term}"
         return new_url
 
     def generate_game(self):
-        term = self.current_term  # Use the stored current term before generating the game
+        term = self.current_term
         self.driver.find_element_by_tag_name("body").send_keys(Keys.RETURN)
         time.sleep(10)
 
         game_generated = False
-        timeout = 60  # Maximum wait time in seconds
+        timeout = 60
         start_time = time.time()
 
         while time.time() - start_time < timeout:
@@ -56,11 +58,11 @@ class TestCreateAiGame(TestCase):
             time.sleep(2)
 
         if not game_generated:
-            print(f"Game generation failed for term: {term}")  # Print the stored term
+            print(f"Game generation failed for term: {term}")
 
     def is_game_generated(self):
         try:
-            self.driver.find_element_by_id("game-generated-element")  # Replace with your element's ID
+            self.driver.find_element_by_id("game-generated-element")
             return True
         except NoSuchElementException:
             return False
