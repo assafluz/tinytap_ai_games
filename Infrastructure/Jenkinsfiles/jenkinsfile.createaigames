@@ -8,5 +8,16 @@ pipeline {
                 }
             }
         }
+        stage('Push index.html to Git') {
+            when {
+                expression { currentBuild.resultIsBetterOrEqualTo('SUCCESS') }
+            }
+            steps {
+                sh 'git config --global user.name "assafluz"'
+                sh 'git add index.html'
+                sh 'git commit -m "Update index.html from Jenkins"'
+                sh 'git push origin main'
+            }
+        }
     }
 }
