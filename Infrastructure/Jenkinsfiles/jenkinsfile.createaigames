@@ -28,7 +28,7 @@ pipeline {
                     sh "git config --global user.email ${GIT_EMAIL}"
                     sh "git add index.html"
                     sh "git commit -m 'Update index.html from Jenkins'"
-                    sh "git push ${REPO_URL} HEAD:${BRANCH_NAME}"
+                    sh "git push ${REPO_URL} HEAD:${BRANCH_NAME} -c http.extraheader='AUTHORIZATION: token ${GITHUB_TOKEN}'"
                 }
             }
         }
