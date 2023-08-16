@@ -92,6 +92,7 @@ class TestCreateAiGame(TestCase):
             self.generate_game()
             self.save_results_html(new_url)
 
+
 def main():
     test = TestCreateAiGame()
     test.test_create_ai_game()
