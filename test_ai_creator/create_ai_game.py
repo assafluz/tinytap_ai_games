@@ -72,10 +72,9 @@ class TestCreateAiGame(TestCase):
             with open(self.results_html_file, "w") as file:
                 file.write("<html><body>\n")
 
-        with open(self.results_html_file, "r") as file:
+        with open(self.results_html_file, "r+") as file:
             content = file.read()
-        if new_url not in content:
-            with open(self.results_html_file, "a") as file:
+            if new_url not in content:
                 file.write(f"<p><a href='{new_url}'>{new_url}</a></p>\n")
 
     def tearDown(self):
@@ -96,6 +95,7 @@ class TestCreateAiGame(TestCase):
 def main():
     test = TestCreateAiGame()
     test.test_create_ai_game()
+
 
 if __name__ == '__main__':
     main()
