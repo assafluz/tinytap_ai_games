@@ -1,15 +1,7 @@
 pipeline {
     agent any
-    environment {
-        GITHUB_TOKEN = credentials('git_token')
-    }
     stages {
-        stage('Checkout Repository') {
-            steps {
-                checkout scm
-            }
-        }
-        stage('TinyTap Staging Create AI Games') {
+        stage('TinyTap staging create ai games') {
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                     sh '/Library/Frameworks/Python.framework/Versions/3.9/bin/python3 -m pytest test_ai_creator/create_ai_game.py::TestCreateAiGame::test_create_ai_game'
@@ -21,11 +13,13 @@ pipeline {
                 expression { currentBuild.resultIsBetterOrEqualTo('SUCCESS') }
             }
             steps {
-                sh 'git config --global user.name "assafluz"'
-                sh 'git config --global user.email assaf@tinytap.com'
-                sh 'git add index.html'
-                sh 'git commit -m "Update index.html from Jenkins"'
-                sh "git push https://$GITHUB_TOKEN@github.com/assafluz/tinytap_ai_games main"
+                withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
+                    sh 'git config --global user.name "assafluz"'
+                    sh 'git config --global user.email assaf@tinytap.com'
+                    sh 'git add index.html'
+                    sh 'git commit -m "Update index.html from Jenkins"'
+                    sh 'git push https://github.com/assafluz/tinytap_ai_games main'
+                }
             }
         }
     }
