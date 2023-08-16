@@ -28,8 +28,7 @@ pipeline {
                     sh "git config --global user.email ${GIT_EMAIL}"
                     sh "git add index.html"
                     sh "git commit -m 'Update index.html from Jenkins'"
-                    sh "git remote add origin ${REPO_URL}"
-                    sh "git push origin ${BRANCH_NAME}"
+                    sh "git push ${REPO_URL} HEAD:${BRANCH_NAME}"
                 }
             }
         }
