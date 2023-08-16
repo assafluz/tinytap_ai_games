@@ -13,11 +13,12 @@ class TestCreateAiGame(TestCase):
         chrome_driver_path = "/Users/androidtinytap/Downloads/chromedriver-mac-x64/chromedriver"
         self.driver = webdriver.Chrome(executable_path=chrome_driver_path, options=options)
         self.original_url = 'https://staging-static.tinytap.it/media/webplayer/webplayer.html?structureJson=https%3A%2F%2Flangchain.tinytap.it%2F%3Fterm='
-        self.results_html_file = "index.html"
+
+        # Construct the path for the index.html file in the parent directory
+        self.results_html_file = os.path.join("..", "index.html")
+
         self.used_terms = set()
-
         self.popular_terms = self.load_popular_terms()
-
 
     def load_popular_terms(self):
         with open("popular_terms.txt", "r") as file:
