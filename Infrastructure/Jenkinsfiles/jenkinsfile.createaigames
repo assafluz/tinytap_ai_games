@@ -13,4 +13,26 @@ pipeline {
         stage('TinyTap staging create ai games') {
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                    sh '/Library/Frameworks/Python.framework/Versions/3.9/bin/python3 -m pytest test
+                    sh '/Library/Frameworks/Python.framework/Versions/3.9/bin/python3 -m pytest test_ai_creator/create_ai_game.py::TestCreateAiGame::test_create_ai_game'
+                }
+            }
+        }
+
+        stage('Push index.html to Git') {
+            when {
+                expression { currentBuild.resultIsBetterOrEqualTo('SUCCESS') }
+            }
+            steps {
+                script {
+                    sh "git config --global user.name ${GIT_USER}"
+                    sh "git config --global user.email ${GIT_EMAIL}"
+                    sh "git add index.html"
+                    sh "git commit -m 'Update index.html from Jenkins'"
+                    withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
+                        sh "git push ${REPO_URL} HEAD:${BRANCH_NAME}"
+                    }
+                }
+            }
+        }
+    }
+}
