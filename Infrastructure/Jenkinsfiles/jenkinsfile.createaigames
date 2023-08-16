@@ -1,5 +1,14 @@
 pipeline {
     agent any
+
+    environment {
+        GIT_USER = 'assafluz'
+        GIT_EMAIL = 'assaf@tinytap.com'
+        GITHUB_TOKEN = credentials('git_token')
+        REPO_URL = 'https://github.com/assafluz/tinytap_ai_games.git'
+        BRANCH_NAME = 'main'
+    }
+
     stages {
         stage('TinyTap staging create ai games') {
             steps {
@@ -8,17 +17,19 @@ pipeline {
                 }
             }
         }
+
         stage('Push index.html to Git') {
             when {
                 expression { currentBuild.resultIsBetterOrEqualTo('SUCCESS') }
             }
             steps {
-                withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
-                    sh 'git config --global user.name "assafluz"'
-                    sh 'git config --global user.email assaf@tinytap.com'
-                    sh 'git add index.html'
-                    sh 'git commit -m "Update index.html from Jenkins"'
-                    sh 'git push https://github.com/assafluz/tinytap_ai_games main'
+                script {
+                    sh "git config --global user.name ${GIT_USER}"
+                    sh "git config --global user.email ${GIT_EMAIL}"
+                    sh "git add index.html"
+                    sh "git commit -m 'Update index.html from Jenkins'"
+                    sh "git remote add origin ${REPO_URL}"
+                    sh "git push origin ${BRANCH_NAME}"
                 }
             }
         }
