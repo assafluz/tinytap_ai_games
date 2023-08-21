@@ -22,7 +22,9 @@ pipeline {
             steps {
                 script {
                     sh "git checkout ${BRANCH_NAME}"
+                    sh "git stash" // Stash unstaged changes
                     sh "git pull --rebase origin ${BRANCH_NAME}"
+                    sh "git stash pop" // Apply stashed changes back
                 }
             }
         }
