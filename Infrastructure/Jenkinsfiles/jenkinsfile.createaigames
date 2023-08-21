@@ -28,8 +28,14 @@ pipeline {
                     sh "git config user.name ${GIT_USER}"
                     sh "git config user.email ${GIT_EMAIL}"
 
+                    // Stash changes
+                    sh "git stash"
+
                     // Checkout the main branch
                     sh "git checkout ${BRANCH_NAME}"
+
+                    // Pop the stash
+                    sh "git stash pop"
 
                     // Add and commit changes
                     sh "git add index.html"
@@ -47,4 +53,3 @@ pipeline {
         }
     }
 }
-
