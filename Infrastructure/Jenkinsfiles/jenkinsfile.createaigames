@@ -28,9 +28,6 @@ pipeline {
                     sh "git config user.name ${GIT_USER}"
                     sh "git config user.email ${GIT_EMAIL}"
 
-                    // Stash untracked files
-                    sh "git stash --include-untracked"
-
                     // Remove untracked files
                     sh "rm -rf test_ai_creator/__pycache__"
 
@@ -39,9 +36,6 @@ pipeline {
 
                     // Pull the latest changes from remote
                     sh "git pull origin ${BRANCH_NAME}"
-
-                    // Apply the stashed changes
-                    sh "git stash apply"
 
                     // Add and commit changes
                     sh "git add index.html"
