@@ -31,6 +31,9 @@ pipeline {
                     // Checkout the main branch
                     sh "git checkout ${BRANCH_NAME}"
 
+                    // Pull the latest changes from remote
+                    sh "git pull origin ${BRANCH_NAME}"
+
                     // Add and commit changes
                     sh "git add index.html"
                     sh "git commit -m 'Update index.html from Jenkins'"
