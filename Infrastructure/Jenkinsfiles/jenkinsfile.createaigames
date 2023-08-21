@@ -16,7 +16,7 @@ pipeline {
             }
         }
 
-        stage('TinyTap production create ai games') {
+        stage('TinyTap staging create ai games') {
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                     sh '/Library/Frameworks/Python.framework/Versions/3.9/bin/python3 -m pytest test_ai_creator/create_ai_game.py::TestCreateAiGame::test_create_ai_game'
@@ -39,7 +39,7 @@ pipeline {
                     sh "git commit -m 'Update index.html from Jenkins'"
 
                     // Pull changes from the remote branch
-                    sh "git pull origin ${BRANCH_NAME}"
+                    sh "git pull --rebase origin ${BRANCH_NAME}"
 
                     // Push only index.html using token for authentication
                     withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
