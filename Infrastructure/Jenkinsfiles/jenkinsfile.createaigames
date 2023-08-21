@@ -10,19 +10,9 @@ pipeline {
     }
 
     stages {
-        stage('Pull index.html from Git') {
+        stage('Pull Repository') {
             steps {
-                script {
-                    // Set Git User Info
-                    sh "git config user.name ${GIT_USER}"
-                    sh "git config user.email ${GIT_EMAIL}"
-
-                    // Checkout the main branch
-                    sh "git checkout ${BRANCH_NAME}"
-
-                    // Pull the latest changes for index.html
-                    sh "git pull origin ${BRANCH_NAME} index.html"
-                }
+                checkout([$class: 'GitSCM', branches: [[name: BRANCH_NAME]], userRemoteConfigs: [[url: REPO_URL]]])
             }
         }
 
@@ -47,9 +37,6 @@ pipeline {
                     // Add and commit changes for index.html
                     sh "git add index.html"
                     sh "git commit -m 'Update index.html from Jenkins'"
-
-                    // Ensure we have the correct remote URL
-                    sh "git remote set-url origin ${REPO_URL}"
 
                     // Push only index.html using token for authentication
                     withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
