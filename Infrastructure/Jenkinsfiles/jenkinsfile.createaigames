@@ -18,6 +18,15 @@ pipeline {
             }
         }
 
+        stage('Pull latest from Git') {
+            steps {
+                sh 'git clean -fd' // Clean any untracked files/folders
+                sh 'git reset --hard HEAD' // Discard any local changes
+                sh "git checkout ${BRANCH_NAME}" // Checkout the main branch
+                sh 'git pull origin main' // Pull the latest changes
+            }
+        }
+
         stage('Push index.html to Git') {
             when {
                 expression { currentBuild.resultIsBetterOrEqualTo('SUCCESS') }
@@ -27,15 +36,6 @@ pipeline {
                     // Set Git User Info
                     sh "git config user.name ${GIT_USER}"
                     sh "git config user.email ${GIT_EMAIL}"
-
-                    // Stash changes
-                    sh "git stash"
-
-                    // Checkout the main branch
-                    sh "git checkout ${BRANCH_NAME}"
-
-                    // Pop the stash
-                    sh "git stash pop"
 
                     // Add and commit changes
                     sh "git add index.html"
