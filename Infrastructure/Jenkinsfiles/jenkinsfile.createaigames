@@ -28,19 +28,31 @@ pipeline {
                     sh "git config user.name ${GIT_USER}"
                     sh "git config user.email ${GIT_EMAIL}"
 
-                    // Pull the latest changes from remote using merge strategy
-                    sh "git pull --strategy=merge origin ${BRANCH_NAME}"
+                    // Remove untracked files
+                    sh "rm -rf test_ai_creator/__pycache__"
 
-                    // Add and commit changes
-                    sh "git add index.html"
-                    sh "git commit -m 'Update index.html from Jenkins'"
+                    // Get the current local branch name
+                    def currentLocalBranch = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
 
-                    // Ensure we have the correct remote URL
-                    sh "git remote set-url origin ${REPO_URL}"
+                    // Get the number of commits ahead and behind
+                    def commitStatus = sh(script: "git rev-list --left-right --count ${BRANCH_NAME}...origin/${BRANCH_NAME}", returnStdout: true).trim()
+                    def ahead = commitStatus.split()[0].toInteger()
+                    def behind = commitStatus.split()[1].toInteger()
 
-                    // Push using token for authentication
-                    withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
-                        sh """git push https://${GIT_USER}:${GITHUB_TOKEN}@${REPO_URL.split('https://')[1]} ${BRANCH_NAME}:${BRANCH_NAME}"""
+                    if (ahead > 0) {
+                        error("Local branch '${currentLocalBranch}' is ${ahead} commit(s) ahead of origin/${BRANCH_NAME}. Please sync your branch.")
+                    } else if (behind > 0) {
+                        error("Local branch '${currentLocalBranch}' is ${behind} commit(s) behind origin/${BRANCH_NAME}. Please sync your branch.")
+                    } else {
+                        // Proceed with committing and pushing changes
+                        sh "git checkout ${BRANCH_NAME}"
+                        sh "git pull origin ${BRANCH_NAME}"
+                        sh "git add index.html"
+                        sh "git commit -m 'Update index.html from Jenkins'"
+                        sh "git remote set-url origin ${REPO_URL}"
+                        withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
+                            sh """git push https://${GIT_USER}:${GITHUB_TOKEN}@${REPO_URL.split('https://')[1]} ${BRANCH_NAME}:${BRANCH_NAME}"""
+                        }
                     }
                 }
             }
