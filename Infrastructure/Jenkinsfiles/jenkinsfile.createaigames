@@ -28,6 +28,9 @@ pipeline {
                     sh "git config user.name ${GIT_USER}"
                     sh "git config user.email ${GIT_EMAIL}"
 
+                    // Checkout the main branch
+                    sh "git checkout ${BRANCH_NAME}"
+
                     // Add and commit changes
                     sh "git add index.html"
                     sh "git commit -m 'Update index.html from Jenkins'"
@@ -37,7 +40,7 @@ pipeline {
 
                     // Push using token for authentication
                     withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
-                        sh "git push https://assafluz:${GITHUB_TOKEN}@${REPO_URL.split('https://')[1]} ${BRANCH_NAME}:${BRANCH_NAME}"
+                        sh """git push https://${GIT_USER}:${GITHUB_TOKEN}@${REPO_URL.split('https://')[1]} ${BRANCH_NAME}:${BRANCH_NAME}"""
                     }
                 }
             }
