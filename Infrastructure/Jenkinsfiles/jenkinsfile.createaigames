@@ -28,22 +28,34 @@ pipeline {
                     sh "git config user.name ${GIT_USER}"
                     sh "git config user.email ${GIT_EMAIL}"
 
-                    // Ensure the index.html file is tracked
-                    sh "git add index.html"
+                    // Stash untracked files
+                    sh "git stash --include-untracked"
 
-                    // Commit changes
+                    // Remove untracked files
+                    sh "rm -rf test_ai_creator/__pycache__"
+
+                    // Checkout the main branch
+                    sh "git checkout ${BRANCH_NAME}"
+
+                    // Pull the latest changes from remote
+                    sh "git pull origin ${BRANCH_NAME}"
+
+                    // Apply the stashed changes
+                    sh "git stash apply"
+
+                    // Add and commit changes
+                    sh "git add index.html"
                     sh "git commit -m 'Update index.html from Jenkins'"
 
                     // Ensure we have the correct remote URL
                     sh "git remote set-url origin ${REPO_URL}"
 
-                    // Push using token for authentication with --force flag
+                    // Push using token for authentication
                     withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
-                        sh """git push --force https://${GIT_USER}:${GITHUB_TOKEN}@${REPO_URL.split('https://')[1]} ${BRANCH_NAME}:${BRANCH_NAME}"""
+                        sh """git push https://${GIT_USER}:${GITHUB_TOKEN}@${REPO_URL.split('https://')[1]} ${BRANCH_NAME}:${BRANCH_NAME}"""
                     }
                 }
             }
         }
     }
 }
-
