@@ -10,12 +10,6 @@ pipeline {
     }
 
     stages {
-        stage('Pull Repository') {
-            steps {
-                checkout([$class: 'GitSCM', branches: [[name: BRANCH_NAME]], userRemoteConfigs: [[url: REPO_URL]]])
-            }
-        }
-
         stage('TinyTap staging create ai games') {
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
@@ -34,14 +28,17 @@ pipeline {
                     sh "git config user.name ${GIT_USER}"
                     sh "git config user.email ${GIT_EMAIL}"
 
-                    // Add and commit changes for index.html
+                    // Checkout the main branch
+                    sh "git checkout ${BRANCH_NAME}"
+
+                    // Add and commit changes
                     sh "git add index.html"
                     sh "git commit -m 'Update index.html from Jenkins'"
 
-                    // Pull changes from the remote branch
-                    sh "git pull --rebase origin ${BRANCH_NAME}"
+                    // Ensure we have the correct remote URL
+                    sh "git remote set-url origin ${REPO_URL}"
 
-                    // Push only index.html using token for authentication
+                    // Push using token for authentication
                     withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
                         sh """git push https://${GIT_USER}:${GITHUB_TOKEN}@${REPO_URL.split('https://')[1]} ${BRANCH_NAME}:${BRANCH_NAME}"""
                     }
@@ -50,3 +47,4 @@ pipeline {
         }
     }
 }
+
