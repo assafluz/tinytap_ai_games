@@ -28,8 +28,8 @@ pipeline {
                     sh "git config user.name ${GIT_USER}"
                     sh "git config user.email ${GIT_EMAIL}"
 
-                    // Stash local changes if any
-                    sh "git stash"
+                    // Stash untracked files
+                    sh "git stash --include-untracked"
 
                     // Checkout the main branch
                     sh "git checkout ${BRANCH_NAME}"
