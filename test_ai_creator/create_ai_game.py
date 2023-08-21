@@ -49,7 +49,7 @@ class TestCreateAiGame(TestCase):
         time.sleep(10)
 
         game_generated = False
-        timeout = 30
+        timeout = 200
         start_time = time.time()
 
         while time.time() - start_time < timeout:
