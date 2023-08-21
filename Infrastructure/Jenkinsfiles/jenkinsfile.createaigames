@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        GIT_USER = 'assafluz'
+        GIT_USER = credentials('git_credentials')
         GIT_EMAIL = 'assaf@tinytap.com'
         GITHUB_TOKEN = credentials('git_token')
         REPO_URL = 'https://github.com/assafluz/tinytap_ai_games.git'
@@ -37,6 +37,9 @@ pipeline {
                     // Add and commit changes for index.html
                     sh "git add index.html"
                     sh "git commit -m 'Update index.html from Jenkins'"
+
+                    // Pull changes from the remote branch
+                    sh "git pull origin ${BRANCH_NAME}"
 
                     // Push only index.html using token for authentication
                     withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
