@@ -10,19 +10,19 @@ pipeline {
     }
 
     stages {
-        stage('Sync Workspace with origin/main') {
-            steps {
-                script {
-                    sh "git checkout ${BRANCH_NAME}"
-                    sh "git pull origin ${BRANCH_NAME}"
-                }
-            }
-        }
-
         stage('TinyTap staging create ai games') {
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                     sh '/Library/Frameworks/Python.framework/Versions/3.9/bin/python3 -m pytest test_ai_creator/create_ai_game.py::TestCreateAiGame::test_create_ai_game'
+                }
+            }
+        }
+
+        stage('Rebase with origin/main') {
+            steps {
+                script {
+                    sh "git checkout ${BRANCH_NAME}"
+                    sh "git pull --rebase origin ${BRANCH_NAME}"
                 }
             }
         }
