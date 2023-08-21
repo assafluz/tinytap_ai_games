@@ -28,11 +28,17 @@ pipeline {
                     sh "git config user.name ${GIT_USER}"
                     sh "git config user.email ${GIT_EMAIL}"
 
+                    // Stash local changes if any
+                    sh "git stash"
+
                     // Checkout the main branch
                     sh "git checkout ${BRANCH_NAME}"
 
                     // Pull the latest changes from remote
                     sh "git pull origin ${BRANCH_NAME}"
+
+                    // Apply the stashed changes
+                    sh "git stash apply"
 
                     // Add and commit changes
                     sh "git add index.html"
