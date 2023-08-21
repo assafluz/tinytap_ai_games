@@ -13,7 +13,7 @@ class TestCreateAiGame(TestCase):
         options.binary_location = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
         chrome_driver_path = "/Users/androidtinytap/Downloads/chromedriver-mac-x64/chromedriver"
         self.driver = webdriver.Chrome(executable_path=chrome_driver_path, options=options)
-        self.original_url = 'https://static.tinytap.it/media/webplayer/webplayer.html?structureJson=https%3A%2F%2Flangchain.tinytap.it%2F%3Fterm='
+        self.original_url = 'https://static.tinytap.com/media/webplayer/webplayer.html?structureJson=https%3A%2F%2Flangchain.tinytap.com%2F%3Fterm='
 
         # Construct the path for the index.html file one directory up
         self.results_html_file = os.path.join(os.path.dirname(__file__), "..", "index.html")
