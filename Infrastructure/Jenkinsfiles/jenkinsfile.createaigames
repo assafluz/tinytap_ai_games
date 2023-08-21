@@ -18,41 +18,31 @@ pipeline {
             }
         }
 
-        stage('Pull latest from Git') {
-            steps {
-                sh 'git clean -fd' // Clean any untracked files/folders
-                sh 'git reset --hard HEAD' // Discard any local changes
-                sh "git checkout ${BRANCH_NAME}" // Checkout the main branch
-                sh 'git pull origin main' // Pull the latest changes
-            }
-        }
-
         stage('Push index.html to Git') {
-            when {
-                expression { currentBuild.resultIsBetterOrEqualTo('SUCCESS') }
-            }
             steps {
                 script {
                     // Set Git User Info
                     sh "git config user.name ${GIT_USER}"
                     sh "git config user.email ${GIT_EMAIL}"
 
-                    // Check if there are changes to commit
-                    def changes = sh(script: "git diff --name-only", returnStatus: true).trim()
-                    if (changes) {
-                        // Add and commit changes
-                        sh "git add index.html"
-                        sh "git commit -m 'Update index.html from Jenkins'"
+                    // Check for untracked files and add to .gitignore if needed
+                    sh "git ls-files --others --exclude-standard > untracked.txt"
+                    sh "sed -i '/^$/d' untracked.txt" // Remove empty lines
+                    sh "sed -i '/untracked.txt/d' untracked.txt" // Remove the file itself
+                    sh "git add untracked.txt"
 
-                        // Ensure we have the correct remote URL
-                        sh "git remote set-url origin ${REPO_URL}"
+                    // Commit changes
+                    sh "git commit -m 'Update untracked files list'"
 
-                        // Push using token for authentication
-                        withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
-                            sh """git push https://${GIT_USER}:${GITHUB_TOKEN}@${REPO_URL.split('https://')[1]} ${BRANCH_NAME}:${BRANCH_NAME}"""
-                        }
-                    } else {
-                        echo "No changes to commit."
+                    // Ensure we have the correct remote URL
+                    sh "git remote set-url origin ${REPO_URL}"
+
+                    // Pull the latest changes from remote 'main' branch
+                    sh "git pull origin ${BRANCH_NAME}"
+
+                    // Push using token for authentication with --force flag
+                    withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
+                        sh """git push --force https://${GIT_USER}:${GITHUB_TOKEN}@${REPO_URL.split('https://')[1]} ${BRANCH_NAME}:${BRANCH_NAME}"""
                     }
                 }
             }
