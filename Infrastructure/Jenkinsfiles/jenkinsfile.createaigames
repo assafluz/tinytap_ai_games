@@ -10,16 +10,7 @@ pipeline {
     }
 
     stages {
-        stage('Rebase with origin/main') {
-            steps {
-                script {
-                    sh "git checkout ${BRANCH_NAME}"
-                    sh "git pull --rebase origin ${BRANCH_NAME}"
-                }
-            }
-        }
-
-        stage('TinyTap production create ai games') {
+        stage('TinyTap staging create ai games') {
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                     sh '/Library/Frameworks/Python.framework/Versions/3.9/bin/python3 -m pytest test_ai_creator/create_ai_game.py::TestCreateAiGame::test_create_ai_game'
@@ -27,7 +18,18 @@ pipeline {
             }
         }
 
-        stage('Commit and Push index.html to Git') {
+        stage('Rebase with origin/main') {
+            steps {
+                script {
+                    sh "git checkout ${BRANCH_NAME}"
+                    sh "git stash" // Stash unstaged changes
+                    sh "git pull --rebase origin ${BRANCH_NAME}"
+                    sh "git stash pop" // Apply stashed changes back
+                }
+            }
+        }
+
+        stage('Push index.html to Git') {
             when {
                 expression { currentBuild.resultIsBetterOrEqualTo('SUCCESS') }
             }
@@ -37,26 +39,25 @@ pipeline {
                     sh "git config user.name ${GIT_USER}"
                     sh "git config user.email ${GIT_EMAIL}"
 
-                    // Check if there are changes to commit
-                    def has_changes = sh(script: 'git diff --cached --exit-code --quiet', returnStatus: true)
+                    // Remove untracked files
+                    sh "rm -rf test_ai_creator/__pycache__"
 
-                    if (has_changes != 0) {
-                        // Add and commit changes
-                        sh "git add index.html"
-                        sh "git commit -m 'Update index.html from Jenkins'"
+                    // Add and commit changes
+                    sh "git add index.html"
+                    sh "git commit -m 'Update index.html from Jenkins'"
 
-                        // Ensure we have the correct remote URL
-                        sh "git remote set-url origin ${REPO_URL}"
+                    // Ensure we have the correct remote URL
+                    sh "git remote set-url origin ${REPO_URL}"
 
-                        // Push using token for authentication
-                        withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
-                            sh """git push https://${GIT_USER}:${GITHUB_TOKEN}@${REPO_URL.split('https://')[1]} ${BRANCH_NAME}:${BRANCH_NAME}"""
-                        }
-                    } else {
-                        echo "No changes to commit and push."
+                    // Push using token for authentication
+                    withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
+                        sh """git push https://${GIT_USER}:${GITHUB_TOKEN}@${REPO_URL.split('https://')[1]} ${BRANCH_NAME}:${BRANCH_NAME}"""
                     }
                 }
             }
         }
     }
 }
+
+
+X
