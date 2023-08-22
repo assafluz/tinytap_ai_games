@@ -10,11 +10,11 @@ pipeline {
     }
 
     stages {
-        stage('Rebase with origin/main') {
+        stage('Git Pull from origin/main') {
             steps {
                 script {
                     sh "git checkout ${BRANCH_NAME}"
-                    sh "git pull --rebase origin ${BRANCH_NAME}"
+                    sh "git pull origin ${BRANCH_NAME}"
                 }
             }
         }
