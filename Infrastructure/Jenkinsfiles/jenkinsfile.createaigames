@@ -42,20 +42,26 @@ pipeline {
                     // Remove untracked files
                     sh "rm -rf test_ai_creator/__pycache__"
 
-                    // Add and commit changes
-                    sh "git add index.html"
-                    sh "git commit -m 'Update index.html from Jenkins'"
+                    // Check if there are changes to commit
+                    def has_changes = sh(script: 'git diff --cached --exit-code --quiet', returnStatus: true)
 
-                    // Ensure we have the correct remote URL
-                    sh "git remote set-url origin ${REPO_URL}"
+                    if (has_changes != 0) {
+                        // Add and commit changes
+                        sh "git add index.html"
+                        sh "git commit -m 'Update index.html from Jenkins'"
 
-                    // Push using token for authentication
-                    withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
-                        sh """git push https://${GIT_USER}:${GITHUB_TOKEN}@${REPO_URL.split('https://')[1]} ${BRANCH_NAME}:${BRANCH_NAME}"""
+                        // Ensure we have the correct remote URL
+                        sh "git remote set-url origin ${REPO_URL}"
+
+                        // Push using token for authentication
+                        withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
+                            sh """git push https://${GIT_USER}:${GITHUB_TOKEN}@${REPO_URL.split('https://')[1]} ${BRANCH_NAME}:${BRANCH_NAME}"""
+                        }
+                    } else {
+                        echo "No changes to commit and push."
                     }
                 }
             }
         }
     }
 }
-
