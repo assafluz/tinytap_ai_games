@@ -18,13 +18,23 @@ pipeline {
             }
         }
 
+        stage('Stash Uncommitted Changes') {
+            steps {
+                script {
+                    try {
+                        sh "git stash"
+                    } catch (Exception e) {
+                        // No changes to stash, ignore the exception
+                    }
+                }
+            }
+        }
+
         stage('Rebase with origin/main') {
             steps {
                 script {
                     sh "git checkout ${BRANCH_NAME}"
-                    sh "git stash" // Stash unstaged changes
                     sh "git pull --rebase origin ${BRANCH_NAME}"
-                    sh "git stash pop" // Apply stashed changes back
                 }
             }
         }
