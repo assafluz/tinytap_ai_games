@@ -14,7 +14,7 @@ class TestCreateAiGame(TestCase):
         options.binary_location = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
         chrome_driver_path = "/Users/androidtinytap/Downloads/chromedriver-mac-x64/chromedriver"
         self.driver = webdriver.Chrome(executable_path=chrome_driver_path, options=options)
-        self.original_url = 'https://static.tinytap.com/media/webplayer/webplayer.html?structureJson=https%3A%2F%2Flangchain.tinytap.com%2F%3Fterm='
+        self.original_url = 'https://www.tinytap.com/ai/game/'
 
         # Construct the path for the index.html file one directory up
         self.results_html_file = os.path.join(os.path.dirname(__file__), "..", "index.html")
@@ -29,8 +29,8 @@ class TestCreateAiGame(TestCase):
             terms = [line.strip() for line in file.readlines()]
         return terms
 
-    def open_original_url(self):
-        self.driver.get(self.original_url)
+    def open_url(self, url):
+        self.driver.get(url)
         self.driver.maximize_window()
         time.sleep(3)
 
@@ -50,7 +50,7 @@ class TestCreateAiGame(TestCase):
         time.sleep(10)
 
         game_generated = False
-        timeout = 200
+        timeout = 60
         start_time = time.time()
 
         while time.time() - start_time < timeout:
@@ -84,13 +84,12 @@ class TestCreateAiGame(TestCase):
 
     def test_create_ai_game(self):
         for _ in range(len(self.popular_terms)):
-            self.open_original_url()
             new_url = self.modify_url()
 
             if new_url is None:
                 break
 
-            self.driver.get(new_url)
+            self.open_url(new_url)  # Open the modified URL with the term at the end
             self.generate_game()
             self.save_results_html(new_url)
 
