@@ -10,6 +10,7 @@ import os
 class TestCreateAiGame(TestCase):
     def setUp(self):
         options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
         options.binary_location = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
         chrome_driver_path = "/Users/androidtinytap/Downloads/chromedriver-mac-x64/chromedriver"
         self.driver = webdriver.Chrome(executable_path=chrome_driver_path, options=options)
