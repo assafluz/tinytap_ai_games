@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import TestCase, main
 import time
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
@@ -74,10 +74,11 @@ class TestCreateAiGame(TestCase):
             with open(self.results_html_file, "w") as file:
                 file.write("<html><body>\n")
 
+        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
         with open(self.results_html_file, "r+") as file:
             content = file.read()
             if new_url not in content:
-                file.write(f"<p><a href='{new_url}'>{new_url}</a></p>\n")
+                file.write(f"<p>{timestamp} - <a href='{new_url}'>{new_url}</a></p>\n")
 
     def tearDown(self):
         self.driver.quit()
