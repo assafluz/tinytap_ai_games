@@ -14,7 +14,7 @@ class TestCreateAiGame(TestCase):
         options.binary_location = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
         chrome_driver_path = "/Users/androidtinytap/Downloads/chromedriver-mac-x64/chromedriver"
         self.driver = webdriver.Chrome(executable_path=chrome_driver_path, options=options)
-        self.original_url = 'https://staging.tinytap.it/ai/game/'
+        self.original_url = 'https://www.tinytap.com/ai/game/'
 
         # Construct the path for the index.html file one directory up
         self.results_html_file = os.path.join(os.path.dirname(__file__), "..", "index.html")
