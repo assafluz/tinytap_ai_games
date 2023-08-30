@@ -8,6 +8,7 @@ import os
 
 
 class TestCreateAiGame(TestCase):
+
     def setUp(self):
         options = webdriver.ChromeOptions()
         # options.add_argument('--headless')
