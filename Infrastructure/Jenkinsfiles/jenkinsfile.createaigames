@@ -28,6 +28,9 @@ pipeline {
                     sh "git checkout ${BRANCH_NAME}"
                     sh "git pull --rebase origin ${BRANCH_NAME}"
 
+                    // Fetch the latest index.html from the remote branch
+                    sh "git checkout origin/${BRANCH_NAME} -- index.html"
+
                     // Apply stashed changes back
                     def stashResult = sh(script: "git stash pop", returnStatus: true)
                     if (stashResult != 0) {
