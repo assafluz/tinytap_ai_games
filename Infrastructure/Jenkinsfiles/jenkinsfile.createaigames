@@ -29,7 +29,13 @@ pipeline {
                     sh "git pull --rebase origin ${BRANCH_NAME}"
 
                     // Apply stashed changes back
-                    sh "git stash pop"
+                    def stashResult = sh(script: "git stash pop", returnStatus: true)
+                    if (stashResult != 0) {
+                        // Handle merge conflict here
+                        // You can use Git commands or any tool to resolve conflicts
+                        // After resolving, continue the pipeline
+                        error("Merge conflict detected. Resolve the conflict and continue the pipeline.")
+                    }
                 }
             }
         }
