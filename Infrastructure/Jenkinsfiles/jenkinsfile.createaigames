@@ -21,10 +21,15 @@ pipeline {
         stage('Rebase with origin/main') {
             steps {
                 script {
+                    // Stash any unstaged changes
+                    sh "git stash"
+
+                    // Checkout the desired branch and pull changes
                     sh "git checkout ${BRANCH_NAME}"
-                    sh "git stash" // Stash unstaged changes
                     sh "git pull --rebase origin ${BRANCH_NAME}"
-                    sh "git stash pop" // Apply stashed changes back
+
+                    // Apply stashed changes back
+                    sh "git stash pop"
                 }
             }
         }
@@ -39,8 +44,8 @@ pipeline {
                     sh "git config user.name ${GIT_USER}"
                     sh "git config user.email ${GIT_EMAIL}"
 
-                    // Remove untracked files
-                    sh "rm -rf test_ai_creator/__pycache__"
+                    // Remove untracked files (if needed)
+                    sh "git clean -fd"
 
                     // Add and commit changes
                     sh "git add index.html"
@@ -58,5 +63,3 @@ pipeline {
         }
     }
 }
-
-
