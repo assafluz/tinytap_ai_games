@@ -18,7 +18,7 @@ Educational games
 Robot building
 Nature exploration
 Musical adventures
-Treasure hunts
+Treasure hunts Puzzle
 Science mysteries
 Artistic expressions
 Mind-bending riddles
@@ -27,4 +27,4 @@ Planting adventures
 Ocean discoveries
 Crafty projects
 Superhero stories
-War
+War Puzzle
