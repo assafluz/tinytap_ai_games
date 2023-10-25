@@ -1,30 +1,27 @@
 from unittest import TestCase, main
 import time
+import os
+import random
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.keys import Keys
-import random
-import os
-
 
 class TestCreateAiGame(TestCase):
 
     def setUp(self):
-        options = webdriver.ChromeOptions()
-        # options.add_argument('--headless')
-        options.binary_location = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-        chrome_driver_path = "/Users/androidtinytap/Downloads/chromedriver-mac-x64/chromedriver"
-        self.driver = webdriver.Chrome(executable_path=chrome_driver_path, options=options)
-        self.original_url = 'https://www.tinytap.com/ai/game/'
-
-        # Construct the path for the index.html file one directory up
-        self.results_html_file = os.path.join(os.path.dirname(__file__), "..", "index.html")
-
+        self.failed_game_terms = []  # Initialize a list to store terms that failed to generate
         self.used_terms = set()
         self.popular_terms = self.load_popular_terms()
+        self.driver = self.setup_webdriver()
+
+    def setup_webdriver(self):
+        options = webdriver.ChromeOptions()
+        options.binary_location = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+        chrome_driver_path = "/Users/androidtinytap/Downloads/chromedriver-mac-x64/chromedriver"
+        driver = webdriver.Chrome(executable_path=chrome_driver_path, options=options)
+        return driver
 
     def load_popular_terms(self):
-        # Provide the absolute path to the popular_terms.txt file
         popular_terms_file = os.path.join(os.path.dirname(__file__), "popular_terms.txt")
         with open(popular_terms_file, "r") as file:
             terms = [line.strip() for line in file.readlines()]
@@ -42,7 +39,7 @@ class TestCreateAiGame(TestCase):
 
         self.current_term = random.choice(available_terms)
         self.used_terms.add(self.current_term)
-        new_url = f"{self.original_url}{self.current_term}"
+        new_url = f"https://staging.tinytap.it/ai/game/{self.current_term}"
         return new_url
 
     def generate_game(self):
@@ -51,7 +48,7 @@ class TestCreateAiGame(TestCase):
         time.sleep(10)
 
         game_generated = False
-        timeout = 160
+        timeout = 180
         start_time = time.time()
 
         while time.time() - start_time < timeout:
@@ -62,6 +59,7 @@ class TestCreateAiGame(TestCase):
 
         if not game_generated:
             print(f"Game generation failed for term: {term}")
+            self.failed_game_terms.append(term)  # Store the failed term for later analysis
 
     def is_game_generated(self):
         try:
@@ -71,15 +69,22 @@ class TestCreateAiGame(TestCase):
             return False
 
     def save_results_html(self, new_url):
-        if not os.path.exists(self.results_html_file):
-            with open(self.results_html_file, "w") as file:
+        results_html_file = os.path.join(os.path.dirname(__file__), "..", "index.html")
+        if not os.path.exists(results_html_file):
+            with open(results_html_file, "w") as file:
                 file.write("<html><body>\n")
 
         timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-        with open(self.results_html_file, "r+") as file:
+        with open(results_html_file, "r+") as file:
             content = file.read()
             if new_url not in content:
                 file.write(f"<p>{timestamp} - <a href='{new_url}'>{new_url}</a></p>\n")
+
+    def save_failed_terms(self):
+        failed_terms_file = os.path.join(os.path.dirname(__file__), "failed_terms.txt")
+        with open(failed_terms_file, "w") as file:
+            for term in self.failed_game_terms:
+                file.write(term + "\n")
 
     def tearDown(self):
         self.driver.quit()
@@ -95,11 +100,11 @@ class TestCreateAiGame(TestCase):
             self.generate_game()
             self.save_results_html(new_url)
 
-
-def main():
-    test = TestCreateAiGame()
-    test.test_create_ai_game()
-
+        if self.failed_game_terms:
+            print("Games failed to generate for the following terms:")
+            for term in self.failed_game_terms:
+                print(term)
+            self.save_failed_terms()  # Save the failed terms to an external file
 
 if __name__ == '__main__':
     main()
