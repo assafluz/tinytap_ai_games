@@ -53,7 +53,7 @@ class TestCreateAiGame(TestCase):
     def click_play_generated_game(self):
         try:
             # Explicitly wait for the iframe to load and switch to it
-            wait = WebDriverWait(self.driver, 30)  # wait for 30 seconds
+            wait = WebDriverWait(self.driver, 20)  # wait for 30 seconds
             iframe = wait.until(EC.presence_of_element_located((By.XPATH, '//iframe[@title="AI Game"]')))
             self.driver.switch_to.frame(iframe)
 
