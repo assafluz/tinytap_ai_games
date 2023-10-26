@@ -78,7 +78,7 @@ class TestCreateAiGame(TestCase):
             with open(results_html_file, "w") as file:
                 file.write("<html><body>\n")
 
-        timestamp = time.strftime("%Y-%m-d %H:%M:%S")
+        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
         with open(results_html_file, "r+") as file:
             content = file.read()
             if new_url not in content:
