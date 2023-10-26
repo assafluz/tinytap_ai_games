@@ -1,3 +1,4 @@
+from telnetlib import EC
 from unittest import TestCase, main
 import time
 import os
@@ -5,6 +6,9 @@ import random
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 class TestCreateAiGame(TestCase):
 
@@ -39,34 +43,35 @@ class TestCreateAiGame(TestCase):
 
         self.current_term = random.choice(available_terms)
         self.used_terms.add(self.current_term)
-        new_url = f"https://staging.tinytap.it/ai/game/{self.current_term}"
+        new_url = f"https://www.tinytap.com/ai/game/{self.current_term}"
         return new_url
 
     def generate_game(self):
-        term = self.current_term
         self.driver.find_element_by_tag_name("body").send_keys(Keys.RETURN)
-        time.sleep(10)
+        time.sleep(150)
 
-        game_generated = False
-        timeout = 180
-        start_time = time.time()
-
-        while time.time() - start_time < timeout:
-            if self.is_game_generated():
-                game_generated = True
-                break
-            time.sleep(2)
-
-        if not game_generated:
-            print(f"Game generation failed for term: {term}")
-            self.failed_game_terms.append(term)  # Store the failed term for later analysis
-
-    def is_game_generated(self):
+    def click_play_generated_game(self):
         try:
-            self.driver.find_element_by_id("game-generated-element")
-            return True
-        except NoSuchElementException:
-            return False
+            # Explicitly wait for the iframe to load and switch to it
+            wait = WebDriverWait(self.driver, 30)  # wait for 30 seconds
+            iframe = wait.until(EC.presence_of_element_located((By.XPATH, '//iframe[@title="AI Game"]')))
+            self.driver.switch_to.frame(iframe)
+
+            # Wait for the play button to be clickable
+            play_button = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, 'playButton')))
+            play_button.click()
+            time.sleep(4)
+
+        except Exception as e:
+            print(f"Exception encountered: {e}")
+            print(f"Failed to click the play button for term: {self.current_term}")
+            self.failed_game_terms.append(self.current_term)
+            # Save the failed term to the external file
+            self.save_failed_terms()
+
+        finally:
+            # Ensure you switch back to the main content after you're done
+            self.driver.switch_to.default_content()
 
     def save_results_html(self, new_url):
         results_html_file = os.path.join(os.path.dirname(__file__), "..", "index.html")
@@ -74,7 +79,7 @@ class TestCreateAiGame(TestCase):
             with open(results_html_file, "w") as file:
                 file.write("<html><body>\n")
 
-        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = time.strftime("%Y-%m-d %H:%M:%S")
         with open(results_html_file, "r+") as file:
             content = file.read()
             if new_url not in content:
@@ -82,9 +87,8 @@ class TestCreateAiGame(TestCase):
 
     def save_failed_terms(self):
         failed_terms_file = os.path.join(os.path.dirname(__file__), "failed_terms.txt")
-        with open(failed_terms_file, "w") as file:
-            for term in self.failed_game_terms:
-                file.write(term + "\n")
+        with open(failed_terms_file, "a") as file:  # Append mode
+            file.write(self.current_term + "\n")
 
     def tearDown(self):
         self.driver.quit()
@@ -98,13 +102,13 @@ class TestCreateAiGame(TestCase):
 
             self.open_url(new_url)  # Open the modified URL with the term at the end
             self.generate_game()
+            self.click_play_generated_game()
             self.save_results_html(new_url)
 
         if self.failed_game_terms:
             print("Games failed to generate for the following terms:")
             for term in self.failed_game_terms:
                 print(term)
-            self.save_failed_terms()  # Save the failed terms to an external file
 
 if __name__ == '__main__':
     main()
