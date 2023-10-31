@@ -42,7 +42,7 @@ class TestCreateAiGame(TestCase):
 
         self.current_term = random.choice(available_terms)
         self.used_terms.add(self.current_term)
-        new_url = f"https://www.tinytap.com/ai/game/{self.current_term}"
+        new_url = f"https://staging.tinytap.it/ai/game/{self.current_term}"
         return new_url
 
     def generate_game(self):
