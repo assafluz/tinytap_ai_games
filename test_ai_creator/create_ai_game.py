@@ -12,11 +12,11 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 class TestCreateAiGame(TestCase):
     def setUp(self):
-        self.failed_game_terms = []  # List to store terms that failed to generate
-        self.used_terms = set()  # Set to keep track of used terms
-        self.popular_terms = self.load_popular_terms()  # Load popular terms
-        self.setup_webdriver()  # Set up the webdriver
-        self.game_durations = {}  # Dictionary to store the duration for each game
+        self.failed_game_terms = []
+        self.used_terms = set()
+        self.popular_terms = self.load_popular_terms()
+        self.setup_webdriver()
+        self.game_durations = {}
 
     def setup_webdriver(self):
         options = webdriver.ChromeOptions()
@@ -44,24 +44,47 @@ class TestCreateAiGame(TestCase):
     def generate_game(self):
         try:
             self.driver.find_element(By.TAG_NAME, "body").send_keys(Keys.RETURN)
-            self.game_start_time = time.time()  # Record start time
+            self.game_start_time = time.time()
             print(f"Generation started for term: {self.current_term}")
+
+            # Wait up to 180 seconds for the play button to appear
+            wait = WebDriverWait(self.driver, 180)
+            iframe = wait.until(EC.presence_of_element_located((By.XPATH, '//iframe[@title="AI Game"]')))
+            self.driver.switch_to.frame(iframe)
+            wait.until(EC.element_to_be_clickable((By.CLASS_NAME, 'playButton')))
+
+            # Once the play button appears, capture the time
+            self.game_ready_time = time.time()
+            print(f"Play button ready for term: {self.current_term}")
+
         except Exception as e:
+            self.failed_game_terms.append(self.current_term)
             print(f"Exception in generate_game: {e}")
+        finally:
+            self.driver.switch_to.default_content()
 
     def click_play_generated_game(self):
         try:
-            wait = WebDriverWait(self.driver, 30)
+            # Wait for the iframe to load
+            wait = WebDriverWait(self.driver, 60)
             iframe = wait.until(EC.presence_of_element_located((By.XPATH, '//iframe[@title="AI Game"]')))
             self.driver.switch_to.frame(iframe)
+
+            # Wait for the play button to be clickable
             play_button = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, 'playButton')))
+
+            # Capture the time just before clicking the play button
+            end_time = time.time()
             play_button.click()
-            duration = time.time() - self.game_start_time
+            time.sleep(4)
+
+            # Calculate and store the duration
+            duration = end_time - self.game_start_time
             self.game_durations[self.current_term] = duration
             print(f"Play button clicked for term: {self.current_term}, duration: {duration}")
         except Exception as e:
             self.failed_game_terms.append(self.current_term)
-            print(f"Exception in click_play_generated_game: {e}")
+            print(f"Exception in click_play_generated_game for term {self.current_term}: {e}")
         finally:
             self.driver.switch_to.default_content()
 
