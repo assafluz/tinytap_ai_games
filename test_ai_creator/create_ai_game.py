@@ -5,9 +5,11 @@ import os
 import random
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.common.by import By
+from webdriver_manager.chrome import ChromeDriverManager
 
 class TestCreateAiGame(TestCase):
 
@@ -15,14 +17,11 @@ class TestCreateAiGame(TestCase):
         self.failed_game_terms = []  # Initialize a list to store terms that failed to generate
         self.used_terms = set()
         self.popular_terms = self.load_popular_terms()
-        self.driver = self.setup_webdriver()
+        self.setup_webdriver()
 
     def setup_webdriver(self):
         options = webdriver.ChromeOptions()
-        options.binary_location = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-        chrome_driver_path = "/Users/androidtinytap/Downloads/chromedriver-mac-x64/chromedriver"
-        driver = webdriver.Chrome(executable_path=chrome_driver_path, options=options)
-        return driver
+        self.driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
 
     def load_popular_terms(self):
         popular_terms_file = os.path.join(os.path.dirname(__file__), "popular_terms.txt")
@@ -46,7 +45,7 @@ class TestCreateAiGame(TestCase):
         return new_url
 
     def generate_game(self):
-        self.driver.find_element_by_tag_name("body").send_keys(Keys.RETURN)
+        self.driver.find_element(By.NAME, "body").send_keys(Keys.RETURN)
         time.sleep(150)
 
     def click_play_generated_game(self):
