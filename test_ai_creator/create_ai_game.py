@@ -95,7 +95,7 @@ class TestCreateAiGame(TestCase):
 
         duration_str = f"{duration:.2f} seconds" if isinstance(duration, (float, int)) else duration
         with open(results_html_file, "a") as file:
-            file.write(f"<p>{timestamp} - <a href='{new_url}'>{new_url}</a> - Duration: {duration_str}</p>\n")
+            file.write(f"<p>{timestamp} - <a href='{new_url}'>{new_url}</a> - ~Duration: {duration_str}</p>\n")
 
     def save_failed_terms(self):
         failed_terms_file = os.path.join(os.path.dirname(__file__), "failed_terms.txt")
