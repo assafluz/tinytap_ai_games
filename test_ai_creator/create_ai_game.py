@@ -44,9 +44,10 @@ class TestCreateAiGame(TestCase):
         self.used_terms.add(self.current_term)
         new_url = f"https://staging.tinytap.it/ai/game/{self.current_term}"
         return new_url
+        time.sleep(4)
 
     def generate_game(self):
-        self.driver.find_element(By.NAME, "body").send_keys(Keys.RETURN)
+        self.driver.find_element(By.TAG_NAME, "body").send_keys(Keys.RETURN)
         time.sleep(150)
 
     def click_play_generated_game(self):
