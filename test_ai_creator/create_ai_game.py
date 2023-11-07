@@ -62,6 +62,7 @@ class TestCreateAiGame(TestCase):
             print(f"Exception in generate_game: {e}")
         finally:
             self.driver.switch_to.default_content()
+        time.sleep(3)
 
     def click_play_generated_game(self):
         try:
