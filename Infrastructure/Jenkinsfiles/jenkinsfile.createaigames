@@ -43,15 +43,13 @@ pipeline {
         stage('Commit and Push Changes') {
             steps {
                 script {
-                    // Debug: Check the current status and list of untracked files
+                    // Debugging: Check the current status and list of untracked files
                     sh "git status"
                     sh "git diff"
 
                     // Add .DS_Store to .gitignore to avoid untracked files issue
                     sh "echo '.DS_Store' >> .gitignore"
                     sh "git add .gitignore"
-
-                    // Add index.html
                     sh "git add index.html"
 
                     // Check if there are changes to commit
@@ -60,9 +58,10 @@ pipeline {
                         // Commit the changes
                         sh "git commit -m 'Update index.html with AI game results'"
 
-                        // Push changes using the GitHub token for authentication
+                        // Set remote URL with credentials
                         withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
-                            sh "git push https://${GIT_USER}:${GITHUB_TOKEN}@${REPO_URL.substring(8)} ${BRANCH_NAME}"
+                            sh "git remote set-url origin https://${GIT_USER}:$GITHUB_TOKEN@${REPO_URL[8:]}"
+                            sh "git push origin ${BRANCH_NAME}"
                         }
                     } else {
                         echo "No changes to commit."
@@ -79,4 +78,3 @@ pipeline {
         }
     }
 }
-
