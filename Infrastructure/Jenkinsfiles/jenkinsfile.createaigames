@@ -23,8 +23,9 @@ pipeline {
         stage('Run AI Game Creation Tests') {
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                    // Run your Python script
                     sh 'python3 -m unittest test_ai_creator.create_ai_game.TestCreateAiGame'
+                    // Debugging: Print the contents of index.html
+                    sh 'cat index.html'
                 }
             }
         }
@@ -37,39 +38,27 @@ pipeline {
                     sh "git config user.email '${GIT_EMAIL}'"
                     sh "git checkout ${BRANCH_NAME}"
                     sh "git pull --rebase origin ${BRANCH_NAME}"
+
+                    // Debugging: Check Git status to see if there are changes
+                    sh "git status"
+                    def hasChanges = sh(script: "git status --porcelain", returnStdout: true).trim()
+                    if (hasChanges) {
+                        sh "git add ."
+                        sh "git commit -m 'Update index.html with AI game results'"
+                        withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
+                            sh "git push https://${env.GIT_USER}:${GITHUB_TOKEN}@${env.REPO_URL} ${env.BRANCH_NAME}"
+                        }
+                    } else {
+                        echo "No changes to commit."
+                    }
                 }
             }
         }
-
-stage('Commit and Push Changes') {
-    steps {
-        script {
-            // Check for changes and echo git status for debugging
-            sh "git status"
-            def hasChanges = sh(script: "git status --porcelain", returnStdout: true).trim()
-            if (hasChanges) {
-                // Add all changes to the staging area
-                sh "git add ."
-
-                // Commit changes
-                sh "git commit -m 'Update index.html with AI game results'"
-
-                // Push the changes
-                withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
-                    sh "git push https://${env.GIT_USER}:${GITHUB_TOKEN}@${env.REPO_URL} ${env.BRANCH_NAME}"
-                }
-            } else {
-                echo "No changes to commit."
-            }
-        }
-    }
-}
     }
 
     post {
         always {
             echo 'Pipeline execution has completed.'
-            // Any additional post-execution steps
         }
     }
 }
