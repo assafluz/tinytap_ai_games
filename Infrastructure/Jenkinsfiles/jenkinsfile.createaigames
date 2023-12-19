@@ -44,17 +44,18 @@ pipeline {
 stage('Commit and Push Changes') {
     steps {
         script {
+            // Check for changes and echo git status for debugging
+            sh "git status"
             def hasChanges = sh(script: "git status --porcelain", returnStdout: true).trim()
             if (hasChanges) {
+                // Add all changes to the staging area
                 sh "git add ."
+
+                // Commit changes
                 sh "git commit -m 'Update index.html with AI game results'"
 
-                // Debug: Print the URL for verification (Ensure credentials are masked)
-                echo "Pushing to URL: ${env.REPO_URL}"
-
-                // Using environment variables directly
+                // Push the changes
                 withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
-                    // Push the changes
                     sh "git push https://${env.GIT_USER}:${GITHUB_TOKEN}@${env.REPO_URL} ${env.BRANCH_NAME}"
                 }
             } else {
