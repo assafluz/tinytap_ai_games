@@ -2,73 +2,91 @@ pipeline {
     agent any
 
     environment {
+        // Define environment variables
         GIT_USER = 'assafluz'
         GIT_EMAIL = 'assaf@tinytap.com'
+        // Retrieve the GitHub token securely
         GITHUB_TOKEN = credentials('git_token')
+        // Repository URL
         REPO_URL = 'https://github.com/assafluz/tinytap_ai_games.git'
+        // Branch to work with
         BRANCH_NAME = 'main'
     }
 
     stages {
-        stage('TinyTap staging create ai games') {
+        stage('Set Up Python Environment') {
             steps {
-                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                    sh '/Library/Frameworks/Python.framework/Versions/3.9/bin/python3 -m pytest test_ai_creator/create_ai_game.py::TestCreateAiGame::test_create_ai_game'
+                script {
+                    // Check Python version and install dependencies if needed
+                    sh 'python3 --version'
+                    // Add any setup steps for your Python environment here
                 }
             }
         }
 
-        stage('Rebase with origin/main') {
+        stage('Run Tests') {
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    // Run Python tests
+                    sh 'python3 -m pytest test_ai_creator/create_ai_game.py::TestCreateAiGame::test_create_ai_game'
+                }
+            }
+        }
+
+        stage('Prepare for Git Operations') {
             steps {
                 script {
                     // Stash any unstaged changes
                     sh "git stash"
 
-                    // Checkout the desired branch and pull changes
+                    // Set Git user configuration
+                    sh "git config user.name '${GIT_USER}'"
+                    sh "git config user.email '${GIT_EMAIL}'"
+
+                    // Checkout the main branch
                     sh "git checkout ${BRANCH_NAME}"
+
+                    // Pull latest changes with rebase
                     sh "git pull --rebase origin ${BRANCH_NAME}"
-
-                    // Fetch the latest index.html from the remote branch
-                    sh "git checkout origin/${BRANCH_NAME} -- index.html"
-
-                    // Apply stashed changes back
-                    def stashResult = sh(script: "git stash pop", returnStatus: true)
-                    if (stashResult != 0) {
-                        // Handle merge conflict here
-                        // You can use Git commands or any tool to resolve conflicts
-                        // After resolving, continue the pipeline
-                        error("Merge conflict detected. Resolve the conflict and continue the pipeline.")
-                    }
                 }
             }
         }
 
-        stage('Push index.html to Git') {
+        stage('Update Index.html') {
+            steps {
+                script {
+                    // Fetch the latest index.html from the remote branch
+                    sh "git checkout origin/${BRANCH_NAME} -- index.html"
+
+                    // Add any steps to modify/update index.html here
+                }
+            }
+        }
+
+        stage('Push Changes to Repository') {
             when {
                 expression { currentBuild.resultIsBetterOrEqualTo('SUCCESS') }
             }
             steps {
                 script {
-                    // Set Git User Info
-                    sh "git config user.name ${GIT_USER}"
-                    sh "git config user.email ${GIT_EMAIL}"
-
-                    // Remove untracked files (if needed)
-                    sh "git clean -fd"
-
-                    // Add and commit changes
+                    // Add the modified index.html
                     sh "git add index.html"
+
+                    // Commit the changes
                     sh "git commit -m 'Update index.html from Jenkins'"
 
-                    // Ensure we have the correct remote URL
-                    sh "git remote set-url origin ${REPO_URL}"
-
-                    // Push using token for authentication
+                    // Push changes using the GitHub token for authentication
                     withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
-                        sh "git push https://${GIT_USER}:${GITHUB_TOKEN}@${REPO_URL[8:]} ${BRANCH_NAME}:${BRANCH_NAME}"
+                        sh "git push https://${GIT_USER}:${GITHUB_TOKEN}@${REPO_URL[8:]} ${BRANCH_NAME}"
                     }
                 }
             }
+        }
+    }
+
+    post {
+        always {
+            // Actions to perform after pipeline execution, like cleanup
         }
     }
 }
