@@ -43,15 +43,15 @@ pipeline {
         stage('Commit and Push Changes') {
             steps {
                 script {
-                    // Check for changes in the repository
-                    def hasChanges = sh(script: "git status --porcelain", returnStatus: true) == 0
+                    // Improved check for changes
+                    def hasChanges = sh(script: "git status --porcelain", returnStdout: true).trim()
                     if (hasChanges) {
                         sh "git add index.html"
                         sh "git commit -m 'Update index.html with AI game results'"
 
-                        // Push using token for authentication
+                        // Corrected push command
                         withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
-                            sh "git push https://${GIT_USER}:${GITHUB_TOKEN}@${REPO_URL.substring(8)} ${BRANCH_NAME}"
+                            sh "git push ${REPO_URL.substring(0, 8)}${GIT_USER}:${GITHUB_TOKEN}@${REPO_URL.substring(8)} ${BRANCH_NAME}"
                         }
                     } else {
                         echo "No changes to commit."
