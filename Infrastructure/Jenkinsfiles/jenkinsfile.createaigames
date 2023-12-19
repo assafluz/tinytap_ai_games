@@ -62,8 +62,9 @@ pipeline {
 stage('Commit and Push') {
     steps {
         script {
-            // Display the status for debugging
+            // Display the current status and diff for debugging
             sh "git status"
+            sh "git diff index.html"
 
             // Check if there are changes to commit
             def hasChanges = sh(script: "git status --porcelain | grep 'index.html'", returnStatus: true) == 0
