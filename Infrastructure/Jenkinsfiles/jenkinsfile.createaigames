@@ -77,7 +77,7 @@ pipeline {
 
                     // Push changes using the GitHub token for authentication
                     withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
-                        sh "git push https://${GIT_USER}:${GITHUB_TOKEN}@${REPO_URL[8:]} ${BRANCH_NAME}"
+                        sh "git push https://${GIT_USER}:${GITHUB_TOKEN}@${REPO_URL.substring(8)} ${BRANCH_NAME}"
                     }
                 }
             }
