@@ -15,7 +15,6 @@ pipeline {
                 script {
                     sh 'python3 --version'
                     echo 'Setting up environment...'
-                    // Add any additional environment setup steps here
                 }
             }
         }
@@ -43,25 +42,20 @@ pipeline {
         stage('Commit and Push Changes') {
             steps {
                 script {
-                    // Debugging: Check the current status and list of untracked files
                     sh "git status"
                     sh "git diff"
 
-                    // Add .DS_Store to .gitignore to avoid untracked files issue
                     sh "echo '.DS_Store' >> .gitignore"
                     sh "git add .gitignore"
                     sh "git add index.html"
 
-                    // Check if there are changes to commit
                     def hasChanges = sh(script: "git status --porcelain", returnStatus: true) == 0
                     if (hasChanges) {
-                        // Commit the changes
                         sh "git commit -m 'Update index.html with AI game results'"
 
-                        // Set remote URL with credentials
                         withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
-                            sh "git remote set-url origin https://${GIT_USER}:$GITHUB_TOKEN@${REPO_URL.substring(8)}"
-                            sh "git push origin ${BRANCH_NAME}"
+                            sh 'git remote set-url origin https://' + GIT_USER + ':$GITHUB_TOKEN@' + REPO_URL.substring(8)
+                            sh 'git push origin ' + BRANCH_NAME
                         }
                     } else {
                         echo "No changes to commit."
@@ -74,7 +68,6 @@ pipeline {
     post {
         always {
             echo 'Pipeline execution has completed.'
-            // Include any post-execution steps here
         }
     }
 }
