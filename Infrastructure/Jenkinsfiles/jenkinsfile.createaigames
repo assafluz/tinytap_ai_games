@@ -59,28 +59,31 @@ pipeline {
             }
         }
 
-        stage('Commit and Push') {
-            steps {
-                script {
-                    // Check if there are changes to commit
-                    def hasChanges = sh(script: "git status --porcelain | grep 'index.html'", returnStatus: true) == 0
-                    if (hasChanges) {
-                        // Add the modified index.html
-                        sh "git add index.html"
+stage('Commit and Push') {
+    steps {
+        script {
+            // Display the status for debugging
+            sh "git status"
 
-                        // Commit the changes
-                        sh "git commit -m 'Update index.html from Jenkins'"
+            // Check if there are changes to commit
+            def hasChanges = sh(script: "git status --porcelain | grep 'index.html'", returnStatus: true) == 0
+            if (hasChanges) {
+                // Add the modified index.html
+                sh "git add index.html"
 
-                        // Push changes using the GitHub token for authentication
-                        withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
-                            sh "git push https://${GIT_USER}:${GITHUB_TOKEN}@${REPO_URL.substring(8)} ${BRANCH_NAME}"
-                        }
-                    } else {
-                        echo "No changes in index.html to commit."
-                    }
+                // Commit the changes
+                sh "git commit -m 'Update index.html from Jenkins'"
+
+                // Push changes using the GitHub token for authentication
+                withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
+                    sh "git push https://${GIT_USER}:${GITHUB_TOKEN}@${REPO_URL.substring(8)} ${BRANCH_NAME}"
                 }
+            } else {
+                echo "No changes in index.html to commit."
             }
         }
+    }
+}
     }
 
     post {
