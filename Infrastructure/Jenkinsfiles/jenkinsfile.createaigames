@@ -60,16 +60,23 @@ pipeline {
         }
 
         stage('Commit and Push') {
-            when {
-                expression { currentBuild.resultIsBetterOrEqualTo('SUCCESS') }
-            }
             steps {
                 script {
-                    // Commit and push changes
-                    sh "git add index.html"
-                    sh "git commit -m 'Update index.html from Jenkins'"
-                    withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
-                        sh "git push https://${GIT_USER}:${GITHUB_TOKEN}@${REPO_URL.substring(8)} ${BRANCH_NAME}"
+                    // Check if there are changes to commit
+                    def hasChanges = sh(script: "git status --porcelain | grep 'index.html'", returnStatus: true) == 0
+                    if (hasChanges) {
+                        // Add the modified index.html
+                        sh "git add index.html"
+
+                        // Commit the changes
+                        sh "git commit -m 'Update index.html from Jenkins'"
+
+                        // Push changes using the GitHub token for authentication
+                        withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
+                            sh "git push https://${GIT_USER}:${GITHUB_TOKEN}@${REPO_URL.substring(8)} ${BRANCH_NAME}"
+                        }
+                    } else {
+                        echo "No changes in index.html to commit."
                     }
                 }
             }
@@ -79,7 +86,4 @@ pipeline {
     post {
         always {
             echo 'Pipeline execution has completed.'
-            // Include any post-execution steps here, like cleanup or notifications
-        }
-    }
-}
+            // Include
