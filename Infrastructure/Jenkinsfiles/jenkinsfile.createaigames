@@ -15,7 +15,7 @@ pipeline {
                 script {
                     sh 'python3 --version'
                     echo 'Setting up environment...'
-                    // Add any additional environment setup steps here
+                    // Additional setup if required
                 }
             }
         }
@@ -23,6 +23,7 @@ pipeline {
         stage('Run AI Game Creation Tests') {
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    // Run your Python script
                     sh 'python3 -m unittest test_ai_creator.create_ai_game.TestCreateAiGame'
                 }
             }
@@ -43,18 +44,15 @@ pipeline {
         stage('Commit and Push Changes') {
             steps {
                 script {
-                    // Improved check for changes
-                    def hasChanges = sh(script: "git status --porcelain", returnStdout: true).trim()
-                    if (hasChanges) {
-                        sh "git add index.html"
-                        sh "git commit -m 'Update index.html with AI game results'"
+                    // Add all changes to the staging area
+                    sh "git add ."
 
-                        // Corrected push command
-                        withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
-                            sh "git push ${REPO_URL.substring(0, 8)}${GIT_USER}:${GITHUB_TOKEN}@${REPO_URL.substring(8)} ${BRANCH_NAME}"
-                        }
-                    } else {
-                        echo "No changes to commit."
+                    // Commit changes with a custom message
+                    sh "git commit -m 'Update index.html with AI game results' || echo 'No changes to commit'"
+
+                    // Push the changes
+                    withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
+                        sh "git push ${REPO_URL.substring(0, 8)}${GIT_USER}:${GITHUB_TOKEN}@${REPO_URL.substring(8)} ${BRANCH_NAME}"
                     }
                 }
             }
@@ -64,7 +62,7 @@ pipeline {
     post {
         always {
             echo 'Pipeline execution has completed.'
-            // Include any post-execution steps here
+            // Any additional post-execution steps
         }
     }
 }
