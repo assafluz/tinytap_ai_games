@@ -49,13 +49,15 @@ pipeline {
                     sh "git add .gitignore"
                     sh "git add index.html"
 
-                    def hasChanges = sh(script: "git status --porcelain", returnStatus: true) == 0
+                    def hasChanges = sh(script: "git status --porcelain", returnStdout: true).trim()
                     if (hasChanges) {
                         sh "git commit -m 'Update index.html with AI game results'"
 
                         withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
-                            sh 'git remote set-url origin https://' + GIT_USER + ':$GITHUB_TOKEN@' + REPO_URL.substring(8)
-                            sh 'git push origin ' + BRANCH_NAME
+                            // Fixed URL construction for git push
+                            String repoUrl = REPO_URL.replaceAll('https://', '')
+                            sh "git remote set-url origin https://${GIT_USER}:${GITHUB_TOKEN}@${repoUrl}"
+                            sh "git push origin ${BRANCH_NAME}"
                         }
                     } else {
                         echo "No changes to commit."
