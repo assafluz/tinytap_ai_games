@@ -41,22 +41,28 @@ pipeline {
             }
         }
 
-        stage('Commit and Push Changes') {
-            steps {
-                script {
-                    // Add all changes to the staging area
-                    sh "git add ."
+stage('Commit and Push Changes') {
+    steps {
+        script {
+            def hasChanges = sh(script: "git status --porcelain", returnStdout: true).trim()
+            if (hasChanges) {
+                sh "git add ."
+                sh "git commit -m 'Update index.html with AI game results'"
 
-                    // Commit changes with a custom message
-                    sh "git commit -m 'Update index.html with AI game results' || echo 'No changes to commit'"
+                // Debug: Print the URL for verification (Ensure credentials are masked)
+                echo "Pushing to URL: ${env.REPO_URL}"
 
+                // Using environment variables directly
+                withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
                     // Push the changes
-                    withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
-                        sh "git push ${REPO_URL.substring(0, 8)}${GIT_USER}:${GITHUB_TOKEN}@${REPO_URL.substring(8)} ${BRANCH_NAME}"
-                    }
+                    sh "git push https://${env.GIT_USER}:${GITHUB_TOKEN}@${env.REPO_URL} ${env.BRANCH_NAME}"
                 }
+            } else {
+                echo "No changes to commit."
             }
         }
+    }
+}
     }
 
     post {
