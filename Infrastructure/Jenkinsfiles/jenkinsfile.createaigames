@@ -86,4 +86,7 @@ pipeline {
     post {
         always {
             echo 'Pipeline execution has completed.'
-            // Include
+            // Include any post-execution steps here, like cleanup or notifications
+        }
+    }
+}
