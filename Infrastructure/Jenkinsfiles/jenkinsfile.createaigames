@@ -5,7 +5,7 @@ pipeline {
         // Define environment variables
         GIT_USER = 'assafluz'
         GIT_EMAIL = 'assaf@tinytap.com'
-        // Retrieve the GitHub token securely
+        // Securely retrieve the GitHub token
         GITHUB_TOKEN = credentials('git_token')
         // Repository URL
         REPO_URL = 'https://github.com/assafluz/tinytap_ai_games.git'
@@ -14,12 +14,13 @@ pipeline {
     }
 
     stages {
-        stage('Set Up Python Environment') {
+        stage('Prepare Environment') {
             steps {
                 script {
-                    // Check Python version and install dependencies if needed
+                    // Check Python version and prepare the environment
                     sh 'python3 --version'
-                    // Add any setup steps for your Python environment here
+                    echo 'Setting up environment...'
+                    // Add any additional environment setup steps here
                 }
             }
         }
@@ -27,55 +28,46 @@ pipeline {
         stage('Run Tests') {
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                    // Run Python tests
+                    // Run tests and handle any failures
                     sh 'python3 -m pytest test_ai_creator/create_ai_game.py::TestCreateAiGame::test_create_ai_game'
                 }
             }
         }
 
-        stage('Prepare for Git Operations') {
+        stage('Git Operations') {
             steps {
                 script {
-                    // Stash any unstaged changes
+                    // Stash changes and configure Git
                     sh "git stash"
-
-                    // Set Git user configuration
                     sh "git config user.name '${GIT_USER}'"
                     sh "git config user.email '${GIT_EMAIL}'"
 
-                    // Checkout the main branch
+                    // Checkout and update the branch
                     sh "git checkout ${BRANCH_NAME}"
-
-                    // Pull latest changes with rebase
                     sh "git pull --rebase origin ${BRANCH_NAME}"
                 }
             }
         }
 
-        stage('Update Index.html') {
+        stage('Update Content') {
             steps {
                 script {
-                    // Fetch the latest index.html from the remote branch
-                    sh "git checkout origin/${BRANCH_NAME} -- index.html"
-
-                    // Add any steps to modify/update index.html here
+                    // Perform operations to update content, e.g., updating index.html
+                    echo 'Updating content...'
+                    // Add steps for content update here
                 }
             }
         }
 
-        stage('Push Changes to Repository') {
+        stage('Commit and Push') {
             when {
                 expression { currentBuild.resultIsBetterOrEqualTo('SUCCESS') }
             }
             steps {
                 script {
-                    // Add the modified index.html
+                    // Commit and push changes
                     sh "git add index.html"
-
-                    // Commit the changes
                     sh "git commit -m 'Update index.html from Jenkins'"
-
-                    // Push changes using the GitHub token for authentication
                     withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
                         sh "git push https://${GIT_USER}:${GITHUB_TOKEN}@${REPO_URL.substring(8)} ${BRANCH_NAME}"
                     }
@@ -86,7 +78,8 @@ pipeline {
 
     post {
         always {
-            // Actions to perform after pipeline execution, like cleanup
+            echo 'Pipeline execution has completed.'
+            // Include any post-execution steps here, like cleanup or notifications
         }
     }
 }
