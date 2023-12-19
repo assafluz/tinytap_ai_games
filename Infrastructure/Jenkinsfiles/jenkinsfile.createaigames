@@ -23,30 +23,51 @@ pipeline {
         stage('Run AI Game Creation Tests') {
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    // Run the Python script
                     sh 'python3 -m unittest test_ai_creator.create_ai_game.TestCreateAiGame'
-                    // Debugging: Print the contents of index.html
+
+                    // Debugging: Check if the index.html is updated
+                    echo 'Checking if index.html is updated...'
                     sh 'cat index.html'
                 }
             }
         }
 
-        stage('Git Operations') {
+        stage('Prepare Git Operations') {
             steps {
                 script {
+                    // Stash any uncommitted changes (if needed)
                     sh "git stash"
+
+                    // Configure Git user
                     sh "git config user.name '${GIT_USER}'"
                     sh "git config user.email '${GIT_EMAIL}'"
-                    sh "git checkout ${BRANCH_NAME}"
-                    sh "git pull --rebase origin ${BRANCH_NAME}"
 
-                    // Debugging: Check Git status to see if there are changes
+                    // Check out the branch
+                    sh "git checkout ${BRANCH_NAME}"
+
+                    // Pull latest changes
+                    sh "git pull --rebase origin ${BRANCH_NAME}"
+                }
+            }
+        }
+
+        stage('Commit and Push Changes') {
+            steps {
+                script {
+                    // Check for changes
                     sh "git status"
                     def hasChanges = sh(script: "git status --porcelain", returnStdout: true).trim()
                     if (hasChanges) {
+                        // Add all changes to staging
                         sh "git add ."
+
+                        // Commit changes
                         sh "git commit -m 'Update index.html with AI game results'"
+
+                        // Push the changes
                         withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
-                            sh "git push https://${env.GIT_USER}:${GITHUB_TOKEN}@${env.REPO_URL} ${env.BRANCH_NAME}"
+                            sh "git push --force https://${env.GIT_USER}:${GITHUB_TOKEN}@${env.REPO_URL} ${env.BRANCH_NAME}"
                         }
                     } else {
                         echo "No changes to commit."
