@@ -60,7 +60,7 @@ pipeline {
 
                         // Set remote URL with credentials
                         withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]) {
-                            sh "git remote set-url origin https://${GIT_USER}:$GITHUB_TOKEN@${REPO_URL[8:]}"
+                            sh "git remote set-url origin https://${GIT_USER}:$GITHUB_TOKEN@${REPO_URL.substring(8)}"
                             sh "git push origin ${BRANCH_NAME}"
                         }
                     } else {
